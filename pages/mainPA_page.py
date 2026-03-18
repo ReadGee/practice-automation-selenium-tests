@@ -1,6 +1,6 @@
 from selenium.webdriver.common.by import By
 from base.base_page import BasePage
-from conftest import driver
+from conftest import driver, get_base_url
 
 
 class MainPA(BasePage):
@@ -26,8 +26,8 @@ class MainPA(BasePage):
     _accordions = (By.CSS_SELECTOR, 'a[href*="accordions"]')
 
 
-    def __init__(self, driver, timeout: int = 15):
-        super().__init__(driver, timeout)
+    def __init__(self, driver, timeout: int = 15, open_page: bool = True):
+        super().__init__(driver, timeout, open_page, get_base_url())
 
     #region click methods
 
