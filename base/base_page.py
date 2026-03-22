@@ -18,9 +18,6 @@ class BasePage:
         else:
             self.driver.get(url)
 
-    # def find(self, locator):
-    #     return self.wait.until(EC.visibility_of_element_located(locator))  """Legacy Code"""
-
     def find(self, locator: tuple[str, str], parent: WebElement=None):
         if parent:
             return self.wait.until(

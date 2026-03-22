@@ -1,0 +1,238 @@
+import time
+from pprint import pprint
+
+from selenium.common import TimeoutException, ElementClickInterceptedException, ElementNotInteractableException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.action_chains import ActionChains
+from utils.Enum_Base import By as E_By
+
+
+class BaseElement:
+    def __init__(self, driver_or_element,
+                 E_By: E_By = E_By.NONE,
+                 locator: str = None,
+                 index: int = None,
+                 web_element=None):
+
+        if isinstance(driver_or_element, BaseElement):
+            self.context_element = driver_or_element
+            self.driver = driver_or_element.driver
+        else:
+            self.context_element = None
+            self.driver = driver_or_element
+
+        self.index = index
+        self._web_element = web_element
+        self._is_collection_element = web_element is not None or index is not None
+
+        if E_By != E_By.NONE:
+            self.locator = (E_By.by, E_By.locator.format(locator))
+        else:
+            raise ValueError(
+                "Необходимо передать один из локаторов (ID, CLASS_NAME, CSS_SELECTOR, LINK_TEXT, XPATH, NAME, TAG_NAME или PARTIAL_LINK_TEXT).")
+
+    def _create_element_instance(self, web_element, element_class=None):
+        """
+        Создает экземпляр элемента с переданным web_element
+        """
+        element_class = element_class or self.__class__
+
+        # Создаем экземпляр с теми же параметрами, но с переданным web_element
+        instance = element_class(
+            self.driver,
+            locator=self.locator,
+            web_element=web_element
+        )
+        return instance
+
+    def find(self, timeout: int = 15, context=None):
+        # Обычный поиск элемента
+        if context:
+            search_context = context
+        elif self.context_element:
+            context_web_element = self.context_element.find(timeout=timeout)
+            if not context_web_element:
+                return None
+            search_context = context_web_element
+        else:
+            search_context = self.driver
+
+        try:
+            element = WebDriverWait(search_context, timeout).until(
+                EC.presence_of_element_located(self.locator)
+            )
+            return element  # Возвращаем WebElement
+
+        except TimeoutException:
+            print(f"Элемент с локатором {self.locator} не был найден в течение {timeout} секунд.")
+            return None
+
+    def find_all(self, timeout: int = 15, context=None, as_objects=True):
+        """
+        Поиск всех элементов с возможностью указать контекст
+
+        Args:
+            timeout: время ожидания
+            context: контекст поиска
+            as_objects: если True - возвращает список объектов класса (по умолчанию),
+                       если False - возвращает список WebElement
+
+        Returns:
+            Список объектов класса или WebElement
+        """
+        # Определяем контекст поиска
+        if context:
+            search_context = context
+        elif self.context_element:
+            # Если есть контекстный элемент, сначала находим его
+            context_web_element = self.context_element.find(timeout=timeout)
+            if not context_web_element:
+                return []
+            search_context = context_web_element
+        else:
+            search_context = self.driver
+
+        try:
+            # Ждем появления хотя бы одного элемента
+            WebDriverWait(search_context, timeout).until(
+                EC.presence_of_element_located(self.locator)
+            )
+            web_elements = search_context.find_elements(*self.locator)
+
+            if as_objects:
+                # Возвращаем список объектов класса
+                return [
+                    self._create_element_instance(web_element)
+                    for web_element in web_elements
+                ]
+            else:
+                # Возвращаем список WebElement
+                return web_elements
+
+        except TimeoutException:
+            print(f"Элементы с локатором {self.locator} не были найдены в течение {timeout} секунд.")
+            return []
+
+    def __getitem__(self, index):
+        """
+        Позволяет использовать индексацию для получения элементов как объектов класса
+        """
+        elements = self.find_all(as_objects=True)
+        if 0 <= index < len(elements):
+            return elements[index]
+        raise IndexError(f"Index {index} out of range for element {self.locator}")
+
+
+    def click(self):
+        element = self.find()
+        try:
+            element.click()
+        except (ElementClickInterceptedException, ElementNotInteractableException):
+            print(f"Элемент {element} некликабелен, попытка через JavaScript")
+            self.driver.execute_script("arguments[0].click();", element)
+
+    def double_click(self):
+        """Выполняет двойной клик на элементе"""
+        element = self.find()
+        actions = ActionChains(self.driver)
+        actions.double_click(element).perform()
+
+    def is_displayed(self, timeout: int = 5):
+        element = self.find(timeout)
+        if element != None:
+            return element.is_displayed()
+        else:
+            return False
+
+    def is_enabled(self):
+        element = self.find()
+        return element.is_enabled()
+
+    def get_attribute(self, attr):
+        element = self.find()
+        return element.get_attribute(attr)
+
+    def select(self):
+        element = self.find()
+        element.click()
+
+    def is_checked(self, element=None):
+        if type(element) is not WebElement:
+            element = self.find()
+        return element.get_attribute("checked") == 'true'
+
+    def get_text(self):
+        element = self.find()
+        return element.text
+
+    def wait_until_visible(self, timeout: int = 10):
+        try:
+            element = WebDriverWait(self.driver, timeout).until(
+                EC.presence_of_element_located(self.locator)
+            )
+
+            if element:
+                return True
+            else:
+                return False
+        except TimeoutException:
+            print(f'Элемент с локатором: {self.locator} не был найден в течение {timeout} секунд')
+            return False
+
+    def wait_until_clickable(self, timeout=10):
+        """Ожидать, пока кнопка станет кликабельной."""
+        try:
+            element = WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable(self.locator))
+            if element:
+                return True
+            else:
+                return False
+        except TimeoutException:
+            print(f'Элемент с локатором: {self.locator} не стал кликабельным в течение {timeout} секунд')
+            return False
+
+    def wait_until_invisibility(self, timeout=10):
+        """Ожидать, пока элемент исчезнет """
+        try:
+            WebDriverWait(self.driver, timeout).until(EC.invisibility_of_element_located(self.locator))
+            return True
+        except TimeoutException:
+            print(f"Элемент с локатором {self.locator} не исчез в течение {timeout} секунд")
+            return False
+
+    def wait_until_visible_all(self, timeout=10):
+        """Ожидать, прогрузятся все элементы """
+        try:
+            WebDriverWait(self.driver, timeout).until(EC.presence_of_all_elements_located(self.locator))
+            return True
+        except TimeoutException:
+            print(f"Элемент с локатором {self.locator} не прогрузился в течение {timeout} секунд")
+            return False
+
+    def wait_until_text_to_be_present_in_element(self, expected_text, timeout=10):
+        """Ожидать, прогрузку текста в элементе """
+        try:
+            WebDriverWait(self.driver, timeout).until(
+                EC.text_to_be_present_in_element(self.locator, expected_text)
+            )
+            return True
+        except TimeoutException:
+            print(f"Элемент с локатором {self.locator} не прогрузился в течение {timeout} секунд")
+            return False
+
+    def wait_for_attribute(self, attribute, value, timeout=10):
+        """Универсальное ожидание атрибута"""
+
+        def condition(driver):
+            return self.get_attribute(attribute) == value
+
+        WebDriverWait(self.driver, timeout).until(condition)
+
+    def send_file(self, value: str):
+        element = self.find()
+        element.send_keys(value)
+
