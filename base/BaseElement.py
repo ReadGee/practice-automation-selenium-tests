@@ -1,22 +1,18 @@
-import time
-from pprint import pprint
-
 from selenium.common import TimeoutException, ElementClickInterceptedException, ElementNotInteractableException
-from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-from utils.Enum_Base import By as E_By
+from utils.Enum_Base import By
 
 
 class BaseElement:
     def __init__(self, driver_or_element,
-                 E_By: E_By = E_By.NONE,
+                 E_By: By = By.NONE,
                  locator: str = None,
                  index: int = None,
-                 web_element=None):
+                 web_element=None
+                 ):
 
         if isinstance(driver_or_element, BaseElement):
             self.context_element = driver_or_element
@@ -31,23 +27,23 @@ class BaseElement:
 
         if E_By != E_By.NONE:
             self.locator = (E_By.by, E_By.locator.format(locator))
+        elif locator is not None:
+            self.locator = locator
         else:
             raise ValueError(
                 "Необходимо передать один из локаторов (ID, CLASS_NAME, CSS_SELECTOR, LINK_TEXT, XPATH, NAME, TAG_NAME или PARTIAL_LINK_TEXT).")
 
     def _create_element_instance(self, web_element, element_class=None):
         """
-        Создает экземпляр элемента с переданным web_element
+            Создает экземпляр элемента с переданным web_element
         """
         element_class = element_class or self.__class__
 
-        # Создаем экземпляр с теми же параметрами, но с переданным web_element
-        instance = element_class(
-            self.driver,
+        return element_class(
+            self,
             locator=self.locator,
             web_element=web_element
         )
-        return instance
 
     def find(self, timeout: int = 15, context=None):
         # Обычный поиск элемента
@@ -61,17 +57,22 @@ class BaseElement:
         else:
             search_context = self.driver
 
+        if self._web_element:
+            return self._web_element
+
         try:
             element = WebDriverWait(search_context, timeout).until(
                 EC.presence_of_element_located(self.locator)
             )
             return element  # Возвращаем WebElement
-
         except TimeoutException:
             print(f"Элемент с локатором {self.locator} не был найден в течение {timeout} секунд.")
             return None
 
-    def find_all(self, timeout: int = 15, context=None, as_objects=True):
+
+
+
+    def find_all(self, timeout: int = 15, context=None, as_objects: bool = True):
         """
         Поиск всех элементов с возможностью указать контекст
 
@@ -129,7 +130,9 @@ class BaseElement:
 
     def click(self):
         element = self.find()
+        print(f"\n\nКлик на элемент: {element}\n\n")
         try:
+            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
             element.click()
         except (ElementClickInterceptedException, ElementNotInteractableException):
             print(f"Элемент {element} некликабелен, попытка через JavaScript")

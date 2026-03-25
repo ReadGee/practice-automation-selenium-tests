@@ -6,3 +6,15 @@ class Button(BaseElement):
 class Text(BaseElement):
     pass
 
+class Input(BaseElement):
+    pass
+
+class Checkbox(BaseElement):
+    pass
+
+class Radio(BaseElement):
+    pass
+
+class ContextMenu(BaseElement):
+    pass
+
