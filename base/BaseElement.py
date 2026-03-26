@@ -10,7 +10,6 @@ class BaseElement:
     def __init__(self, driver_or_element,
                  E_By: By = By.NONE,
                  locator: str = None,
-                 index: int = None,
                  web_element=None
                  ):
 
@@ -21,9 +20,7 @@ class BaseElement:
             self.context_element = None
             self.driver = driver_or_element
 
-        self.index = index
         self._web_element = web_element
-        self._is_collection_element = web_element is not None or index is not None
 
         if E_By != E_By.NONE:
             self.locator = (E_By.by, E_By.locator.format(locator))
@@ -66,7 +63,7 @@ class BaseElement:
             )
             return element  # Возвращаем WebElement
         except TimeoutException:
-            print(f"Элемент с локатором {self.locator} не был найден в течение {timeout} секунд.")
+            print(f"\nЭлемент с локатором {self.locator} не был найден в течение {timeout} секунд.")
             return None
 
 
@@ -115,27 +112,18 @@ class BaseElement:
                 return web_elements
 
         except TimeoutException:
-            print(f"Элементы с локатором {self.locator} не были найдены в течение {timeout} секунд.")
+            print(f"\nЭлементы с локатором {self.locator} не были найдены в течение {timeout} секунд.")
             return []
-
-    def __getitem__(self, index):
-        """
-        Позволяет использовать индексацию для получения элементов как объектов класса
-        """
-        elements = self.find_all(as_objects=True)
-        if 0 <= index < len(elements):
-            return elements[index]
-        raise IndexError(f"Index {index} out of range for element {self.locator}")
 
 
     def click(self):
         element = self.find()
-        print(f"\n\nКлик на элемент: {element}\n\n")
+        print(f"\nКлик на элемент info: {self._debug_info_elements(element)}")
         try:
             self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
             element.click()
         except (ElementClickInterceptedException, ElementNotInteractableException):
-            print(f"Элемент {element} некликабелен, попытка через JavaScript")
+            print(f"\nЭлемент {self._debug_info_elements(element)} некликабелен, попытка через JavaScript")
             self.driver.execute_script("arguments[0].click();", element)
 
     def double_click(self):
@@ -168,8 +156,10 @@ class BaseElement:
             element = self.find()
         return element.get_attribute("checked") == 'true'
 
+    @property
     def get_text(self):
         element = self.find()
+        print(f"\nПолучен текст от элемента: {self._debug_info_elements(element)}")
         return element.text
 
     def wait_until_visible(self, timeout: int = 10):
@@ -217,7 +207,7 @@ class BaseElement:
             return False
 
     def wait_until_text_to_be_present_in_element(self, expected_text, timeout=10):
-        """Ожидать, прогрузку текста в элементе """
+        """Ожидать, текст в элементе """
         try:
             WebDriverWait(self.driver, timeout).until(
                 EC.text_to_be_present_in_element(self.locator, expected_text)
@@ -238,4 +228,8 @@ class BaseElement:
     def send_file(self, value: str):
         element = self.find()
         element.send_keys(value)
+
+    @staticmethod
+    def _debug_info_elements(element: WebElement) -> str:
+        return f"Id: {element.id}, Location: {element.location}, Size: {element.size}, Text: {element.text}, Tag_Name: {element.tag_name}, Parent: {element.parent}"
 

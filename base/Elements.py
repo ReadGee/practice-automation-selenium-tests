@@ -18,3 +18,10 @@ class Radio(BaseElement):
 class ContextMenu(BaseElement):
     pass
 
+class Slider(BaseElement):
+    def set_value(self, value: int):
+        """Устанавливает значение слайдера через JavaScript и вызывает события изменения."""
+        target_element = self.find()
+
+        script = f"arguments[0].value = {value}; arguments[0].dispatchEvent(new Event('input')); arguments[0].dispatchEvent(new Event('change'));"
+        self.driver.execute_script(script, target_element)

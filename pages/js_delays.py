@@ -6,8 +6,8 @@ from conftest import driver
 
 class JsDelays(BasePage):
 
-    def __init__(self, driver, timeout: int = 15):
-        super().__init__(driver, timeout)
+    def __init__(self, driver):
+        super().__init__(driver)
         self.Text = Text(self.driver, By.ID, 'delay')
 
     def check_delay(self, text: str):

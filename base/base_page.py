@@ -5,18 +5,14 @@ from selenium.webdriver.support import expected_conditions as ec
 
 class BasePage:
 
-    def __init__(self, driver, timeout: int = 10, open_page: bool = False, url: str = ''):
+    def __init__(self, driver, open_page: bool = False, url: str = None):
         self.driver = driver
-        self.wait = WebDriverWait(driver, timeout)
         if open_page:
             self.url = url
             self.open(url)
 
-    def open(self, url: str=None):
-        if url is None:
-            self.driver.get(self.url)
-        else:
-            self.driver.get(url)
+    def open(self, url: str = None):
+        self.driver.get(url)
 
     def refresh(self):
         self.driver.refresh()

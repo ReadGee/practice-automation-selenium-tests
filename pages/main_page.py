@@ -7,8 +7,8 @@ from conftest import driver, get_base_url
 
 class MainPage(BasePage):
 
-    def __init__(self, driver, timeout: int = 15, open_page: bool = True):
-        super().__init__(driver, timeout, open_page, get_base_url())
+    def __init__(self, driver, open_page: bool = True):
+        super().__init__(driver, open_page, get_base_url())
 
     #region click methods
 

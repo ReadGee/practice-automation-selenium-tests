@@ -6,10 +6,10 @@ from base.base_page import BasePage
 from conftest import driver
 
 
-class Form_fields(BasePage):
+class FormFields(BasePage):
 
-    def __init__(self, driver, timeout: int = 15):
-        super().__init__(driver, timeout)
+    def __init__(self, driver):
+        super().__init__(driver)
 
     @property
     def name_input(self):
