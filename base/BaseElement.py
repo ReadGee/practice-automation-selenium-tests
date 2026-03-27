@@ -117,13 +117,14 @@ class BaseElement:
 
 
     def click(self):
+
         element = self.find()
         print(f"\nКлик на элемент info: {self._debug_info_elements(element)}")
         try:
             self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
             element.click()
         except (ElementClickInterceptedException, ElementNotInteractableException):
-            print(f"\nЭлемент {self._debug_info_elements(element)} некликабелен, попытка через JavaScript")
+            print(f"Элемент {self._debug_info_elements(element)} некликабелен, попытка через JavaScript")
             self.driver.execute_script("arguments[0].click();", element)
 
     def double_click(self):
