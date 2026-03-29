@@ -5,3 +5,4 @@ from .popups import Popups
 from .slider_page import SliderPage
 from .calendars_page import CalendarsPage
 from .modal_page import ModalPage
+from .hover_page import HoverPage

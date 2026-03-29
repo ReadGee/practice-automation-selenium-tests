@@ -3,7 +3,7 @@ import pytest
 from pyexpat.errors import messages
 from selenium.webdriver.support.select import Select
 from base.base_test import BaseTest
-from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage
+from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage
 
 
 class TestTestingFullSite(BaseTest):
@@ -141,3 +141,11 @@ class TestTestingFullSite(BaseTest):
 
         assert all(req in all_texts for req in required), \
             f"Не найдены элементы: {[r for r in required if r not in all_texts]}"
+
+    def test_hover(self):
+        hover_page = HoverPage(self.driver)
+        self.main_Page.click_hover()
+
+        hover_page.hover_text.hover()
+
+        assert hover_page.hover_text.get_text == "You did it!"
