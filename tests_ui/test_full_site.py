@@ -1,8 +1,9 @@
 import random
 import pytest
+from pyexpat.errors import messages
 from selenium.webdriver.support.select import Select
 from base.base_test import BaseTest
-from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage
+from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage
 
 
 class TestTestingFullSite(BaseTest):
@@ -22,8 +23,8 @@ class TestTestingFullSite(BaseTest):
         form_fields = FormFields(self.driver)
         self.main_Page.click_form_fields()
 
-        form_fields.name_input.send_file(self.get_valid_username)
-        form_fields.password_input.send_file(self.get_valid_password)
+        form_fields.name_input.send_keys(self.get_valid_username)
+        form_fields.password_input.send_keys(self.get_valid_password)
 
         favorite_drink = form_fields.drink_checkbox
         for fav_drink in favorite_drink:
@@ -38,8 +39,8 @@ class TestTestingFullSite(BaseTest):
         dropdown = Select(form_fields.automation_context_menu.find())
         dropdown.select_by_index(random.randint(0, len(dropdown.options)-1))
 
-        form_fields.email_input.send_file(self.get_valid_email)
-        form_fields.message_input.send_file(self.get_random_text(128))
+        form_fields.email_input.send_keys(self.get_valid_email)
+        form_fields.message_input.send_keys(self.get_random_text(128))
 
         form_fields.submit_button.click()
         result = form_fields.alert.text == "Message received!"
@@ -115,3 +116,28 @@ class TestTestingFullSite(BaseTest):
         calendar_page.submit_button.click()
 
         assert calendar_page.data_text.get_text == f"{random_data.get('year')}-{random_data.get('month'):02d}-{random_data.get('day'):02d}"
+
+    def test_simple_modal(self):
+        simple_modal = ModalPage(self.driver)
+        self.main_Page.click_modals()
+        simple_modal.simple_modal_button.click()
+        assert simple_modal.simple_modal_text is not None
+
+    def test_form_modal(self):
+        form_modal = ModalPage(self.driver)
+        name = self.get_valid_username
+        email = self.get_valid_email
+        message = self.get_random_text(50)
+        self.main_Page.click_modals()
+        form_modal.form_modal_button.click()
+
+        form_modal.name_form_modal_input.send_keys(name)
+        form_modal.email_form_modal_input.send_keys(email)
+        form_modal.message_form_modal_input.send_keys(message)
+        form_modal.submit_form_modal_button.click()
+
+        all_texts = [obj.get_text for obj in form_modal.form_modal_text]
+        required = [name, email, message]
+
+        assert all(req in all_texts for req in required), \
+            f"Не найдены элементы: {[r for r in required if r not in all_texts]}"

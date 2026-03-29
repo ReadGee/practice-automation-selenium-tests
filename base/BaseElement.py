@@ -14,10 +14,10 @@ class BaseElement:
                  ):
 
         if isinstance(driver_or_element, BaseElement):
-            self.context_element = driver_or_element
+            self.parent = driver_or_element.find(timeout=5)
             self.driver = driver_or_element.driver
         else:
-            self.context_element = None
+            self.parent = None
             self.driver = driver_or_element
 
         self._web_element = web_element
@@ -42,20 +42,39 @@ class BaseElement:
             web_element=web_element
         )
 
-    def find(self, timeout: int = 15, context=None):
-        # Обычный поиск элемента
-        if context:
-            search_context = context
-        elif self.context_element:
-            context_web_element = self.context_element.find(timeout=timeout)
-            if not context_web_element:
-                return None
-            search_context = context_web_element
-        else:
-            search_context = self.driver
+    def find(self, timeout: int = 15, parent: BaseElement | WebElement | tuple[By, str] = None) -> WebElement | None:
+        """
+        Данный метод используется для поиска элементов на странице или в родителе.
+        :param timeout: Максимальное время ожидания (Поиска) в секундах. (Default: ``15``)
+        :param parent: Ссылка на родителя в котором необходимо найти элементы. Принимает ``WebElement``, ``Locator``, а также элементы наследуемые от ``BaseElement``. (Default: ``None``)
+        :return: ``WebElement``, но если сработает исключение, то ``None``.
+        :raise: TimeoutException: Если за отведенное время ничего не нашлось. Возвращает None
+        """
 
         if self._web_element:
             return self._web_element
+
+        if self.parent and parent is None:
+            parent = self.parent
+
+        search_context = self.driver
+
+        if parent is not None:
+            try:
+                if isinstance(parent, BaseElement):
+                    search_context = WebDriverWait(self.driver, timeout).until(
+                        EC.presence_of_element_located(parent.locator)
+                    )
+                elif isinstance(parent, tuple):
+                    search_context = WebDriverWait(self.driver, timeout).until(
+                        EC.presence_of_element_located(parent)
+                    )
+                elif isinstance(parent, WebElement):
+                    search_context = parent
+            except TimeoutException:
+                print(f"\nЭлемент родитель с локатором {self.locator} не был найден в течение {timeout} секунд.")
+                return None
+
 
         try:
             element = WebDriverWait(search_context, timeout).until(
@@ -69,7 +88,7 @@ class BaseElement:
 
 
 
-    def find_all(self, timeout: int = 15, context=None, as_objects: bool = True):
+    def find_all(self, timeout: int = 15, as_objects: bool = True, parent: BaseElement | WebElement | tuple[By, str] = None):
         """
         Поиск всех элементов с возможностью указать контекст
 
@@ -82,17 +101,27 @@ class BaseElement:
         Returns:
             Список объектов класса или WebElement
         """
-        # Определяем контекст поиска
-        if context:
-            search_context = context
-        elif self.context_element:
-            # Если есть контекстный элемент, сначала находим его
-            context_web_element = self.context_element.find(timeout=timeout)
-            if not context_web_element:
+
+        if self.parent and parent is None:
+            parent = self.parent
+
+        search_context = self.driver
+
+        if parent is not None:
+            try:
+                if isinstance(parent, BaseElement):
+                    search_context = WebDriverWait(self.driver, timeout).until(
+                        EC.presence_of_element_located(parent.locator)
+                    )
+                elif isinstance(parent, tuple):
+                    search_context = WebDriverWait(self.driver, timeout).until(
+                        EC.presence_of_element_located(parent)
+                    )
+                elif isinstance(parent, WebElement):
+                    search_context = parent
+            except TimeoutException:
+                print(f"\nЭлемент родитель с локатором {self.locator} не был найден в течение {timeout} секунд.")
                 return []
-            search_context = context_web_element
-        else:
-            search_context = self.driver
 
         try:
             # Ждем появления хотя бы одного элемента
@@ -121,10 +150,11 @@ class BaseElement:
         element = self.find()
         print(f"\nКлик на элемент info: {self._debug_info_elements(element)}")
         try:
-            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
+            _ = element.location_once_scrolled_into_view
             element.click()
         except (ElementClickInterceptedException, ElementNotInteractableException):
             print(f"Элемент {self._debug_info_elements(element)} некликабелен, попытка через JavaScript")
+            self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", element)
             self.driver.execute_script("arguments[0].click();", element)
 
     def double_click(self):
@@ -226,7 +256,7 @@ class BaseElement:
 
         WebDriverWait(self.driver, timeout).until(condition)
 
-    def send_file(self, value: str):
+    def send_keys(self, value: str):
         element = self.find()
         element.send_keys(value)
 

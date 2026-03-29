@@ -25,3 +25,6 @@ class Slider(BaseElement):
 
         script = f"arguments[0].value = {value}; arguments[0].dispatchEvent(new Event('input')); arguments[0].dispatchEvent(new Event('change'));"
         self.driver.execute_script(script, target_element)
+
+class Modal(BaseElement):
+    pass
