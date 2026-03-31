@@ -2,8 +2,8 @@ import random
 import pytest
 from pyexpat.errors import messages
 from selenium.webdriver.support.select import Select
-from base.base_test import BaseTest
-from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage
+from base.BaseTest import BaseTest
+from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage, WindowOperationsPage, AdsPage
 
 
 class TestTestingFullSite(BaseTest):
@@ -142,6 +142,27 @@ class TestTestingFullSite(BaseTest):
         assert all(req in all_texts for req in required), \
             f"Не найдены элементы: {[r for r in required if r not in all_texts]}"
 
+    def test_window_operations(self):
+        window_operations_page = WindowOperationsPage(self.driver)
+        self.main_Page.click_window_operations()
+        test_errors = []
+        original_url = window_operations_page.get_driver_url
+        count_handle = len(window_operations_page.get_handles)
+
+        window_operations_page.new_tab_button[0].click()
+        test_errors.append(len(window_operations_page.get_handles) > count_handle)
+        window_operations_page.close(window_operations_page.get_last_handle)
+
+        window_operations_page.new_tab_button[1].click()
+        test_errors.append(original_url is not window_operations_page.get_driver_url)
+        window_operations_page.back()
+
+        window_operations_page.new_tab_button[2].click()
+        test_errors.append(len(window_operations_page.get_handles) > count_handle)
+        window_operations_page.close(window_operations_page.get_last_handle)
+
+        assert False not in test_errors
+
     def test_hover(self):
         hover_page = HoverPage(self.driver)
         self.main_Page.click_hover()
@@ -149,3 +170,12 @@ class TestTestingFullSite(BaseTest):
         hover_page.hover_text.hover()
 
         assert hover_page.hover_text.get_text == "You did it!"
+
+    def test_ads(self):
+        ads_page = AdsPage(self.driver)
+        self.main_Page.click_ads()
+
+        result = ads_page.ads_modal.wait_until_visible(timeout=6)
+        ads_page.close_modal_button.click()
+
+        assert result

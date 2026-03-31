@@ -6,3 +6,5 @@ from .slider_page import SliderPage
 from .calendars_page import CalendarsPage
 from .modal_page import ModalPage
 from .hover_page import HoverPage
+from .window_operations_page import WindowOperationsPage
+from .ads_page import AdsPage

@@ -3,7 +3,7 @@ from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from utils.Enum_Base import By
+from utils.EnumBy import By
 
 
 class BaseElement:
@@ -86,7 +86,7 @@ class BaseElement:
             print(f"\nЭлемент {self.locator} не найден за {timeout} сек.")
             return None
 
-    def find_all(self, timeout: int = 15, as_objects: bool = True, parent: BaseElement | WebElement | tuple[By, str] = None):
+    def find_all(self, timeout: int = 15, as_objects: bool = True, parent: BaseElement | WebElement | tuple[By, str] = None) -> [WebElement] | [BaseElement] | None:
         """
         Поиск всех элементов с возможностью указать родителя.
         :param timeout: Максимальное время ожидания (Поиска) в секундах. (по умолчанию: ``15``)
@@ -98,7 +98,7 @@ class BaseElement:
 
         context = self._get_search_context(parent, timeout)
         if context is None:
-            return []
+            return None
 
         try:
             # Ждем появления хотя бы одного элемента
@@ -184,7 +184,7 @@ class BaseElement:
     def wait_until_visible(self, timeout: int = 10):
         try:
             element = WebDriverWait(self.driver, timeout).until(
-                EC.presence_of_element_located(self.locator)
+                EC.visibility_of_element_located(self.locator)
             )
 
             if element:

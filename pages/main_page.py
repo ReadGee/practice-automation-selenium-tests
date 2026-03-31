@@ -1,7 +1,7 @@
-from utils.Enum_Base import By
+from utils.EnumBy import By
 
 from base.Elements import Button
-from base.base_page import BasePage
+from base.BasePage import BasePage
 from conftest import driver, get_base_url
 
 
