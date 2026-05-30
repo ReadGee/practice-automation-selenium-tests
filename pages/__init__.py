@@ -10,3 +10,4 @@ from .window_operations_page import WindowOperationsPage
 from .ads_page import AdsPage
 from .click_events_page import ClickEventsPage
 from .spinners_page import SpinnersPage
+from .broken_images_page import BrokenImagePage

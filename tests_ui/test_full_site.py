@@ -3,7 +3,7 @@ import pytest
 from pyexpat.errors import messages
 from selenium.webdriver.support.select import Select
 from base.BaseTest import BaseTest
-from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage, WindowOperationsPage, AdsPage, ClickEventsPage, SpinnersPage
+from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage, WindowOperationsPage, AdsPage, ClickEventsPage, SpinnersPage, BrokenImagePage
 
 
 class TestTestingFullSite(BaseTest):
@@ -200,3 +200,12 @@ class TestTestingFullSite(BaseTest):
         spinners_page = SpinnersPage(self.driver)
 
         assert spinners_page.get_spinner.wait_until_invisibility(15)
+
+    def test_broken_images(self):
+        self.main_Page.click_broken_images()
+        broken_images_page = BrokenImagePage(self.driver)
+
+        images = broken_images_page.get_images
+        for index, img in enumerate(images):
+            img_src = img.get_attribute("src")
+            assert not img.is_broken(), f"Картинка #{index} сломана! Ссылка: {img_src}"

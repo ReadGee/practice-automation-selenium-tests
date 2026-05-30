@@ -31,3 +31,17 @@ class Modal(BaseElement):
 
 class Spinner(BaseElement):
     pass
+
+class Other(BaseElement):
+    pass
+
+class Image(BaseElement):
+    def is_broken(self) -> bool:
+        target_element = self.find()
+        is_valid_image = self.driver.execute_script(
+            "return arguments[0].complete && "
+            "typeof arguments[0].naturalWidth != 'undefined' && "
+            "arguments[0].naturalWidth > 0;",
+            target_element
+        )
+        return not is_valid_image
