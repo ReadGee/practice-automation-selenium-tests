@@ -28,3 +28,6 @@ class Slider(BaseElement):
 
 class Modal(BaseElement):
     pass
+
+class Spinner(BaseElement):
+    pass

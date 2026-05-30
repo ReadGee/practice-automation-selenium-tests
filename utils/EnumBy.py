@@ -16,6 +16,7 @@ class By(Enum):
     BUTTON_ID = (By.CSS_SELECTOR, '[buttonid="{}"]')
     INPUT_ID = (By.CSS_SELECTOR, '[inputid="{}"]')
     ROUTER_LINK = (By.CSS_SELECTOR, '[routerlink="{}"]')
+    ON_CLICK = (By.CSS_SELECTOR, '[onclick="{}"]')
 
     def __init__(self, by: By, locator: str):
         self.by = by

@@ -182,6 +182,11 @@ class BaseElement:
         return element.text
 
     def wait_until_visible(self, timeout: int = 10):
+        """
+        Ожидать, когда элемент станет видимым.
+        :param timeout: Время ожидания.
+        :return: ``Bool``, ``True`` если элемент уложился в ``timeout``, ``False`` если не уложился в ``timeout``.
+        """
         try:
             element = WebDriverWait(self.driver, timeout).until(
                 EC.visibility_of_element_located(self.locator)
@@ -196,7 +201,11 @@ class BaseElement:
             return False
 
     def wait_until_clickable(self, timeout=10):
-        """Ожидать, пока кнопка станет кликабельной."""
+        """
+        Ожидать, пока кнопка станет кликабельной.
+        :param timeout: Время ожидания.
+        :return: ``Bool``, ``True`` если элемент уложился в ``timeout``, ``False`` если не уложился в ``timeout``.
+        """
         try:
             element = WebDriverWait(self.driver, timeout).until(EC.element_to_be_clickable(self.locator))
             if element:
@@ -208,7 +217,11 @@ class BaseElement:
             return False
 
     def wait_until_invisibility(self, timeout=10):
-        """Ожидать, пока элемент исчезнет """
+        """
+        Ожидать, пока элемент исчезнет.
+        :param timeout: Время ожидания.
+        :return: ``Bool``, ``True`` если элемент уложился в ``timeout``, ``False`` если не уложился в ``timeout``.
+        """
         try:
             WebDriverWait(self.driver, timeout).until(EC.invisibility_of_element_located(self.locator))
             return True
@@ -217,7 +230,11 @@ class BaseElement:
             return False
 
     def wait_until_visible_all(self, timeout=10):
-        """Ожидать, прогрузятся все элементы """
+        """
+        Ожидать, прогрузятся все элементы.
+        :param timeout: Время ожидания.
+        :return: ``Bool``, ``True`` если элемент уложился в ``timeout``, ``False`` если не уложился в ``timeout``.
+        """
         try:
             WebDriverWait(self.driver, timeout).until(EC.presence_of_all_elements_located(self.locator))
             return True
@@ -226,7 +243,11 @@ class BaseElement:
             return False
 
     def wait_until_text_to_be_present_in_element(self, expected_text, timeout=10):
-        """Ожидать, текст в элементе """
+        """
+        Ожидать, текст в элементе.
+        :param timeout: Время ожидания.
+        :return: ``Bool``, ``True`` если элемент уложился в ``timeout``, ``False`` если не уложился в ``timeout``.
+        """
         try:
             WebDriverWait(self.driver, timeout).until(
                 EC.text_to_be_present_in_element(self.locator, expected_text)
@@ -237,7 +258,7 @@ class BaseElement:
             return False
 
     def wait_for_attribute(self, attribute, value, timeout=10):
-        """Универсальное ожидание атрибута"""
+        """Универсальное ожидание атрибута."""
 
         def condition(driver):
             return self.get_attribute(attribute) == value
@@ -250,5 +271,5 @@ class BaseElement:
 
     @staticmethod
     def _debug_info_elements(element: WebElement) -> str:
-        return f"Id: {element.id}, Location: {element.location}, Size: {element.size}, Text: {element.text}, Tag_Name: {element.tag_name}, Parent: {element.parent}"
+        return f"id: {element.id}, Location: {element.location}, Size: {element.size}, Text: {element.text}, Tag_Name: {element.tag_name}, Parent: {element.parent}"
 

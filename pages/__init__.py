@@ -8,3 +8,5 @@ from .modal_page import ModalPage
 from .hover_page import HoverPage
 from .window_operations_page import WindowOperationsPage
 from .ads_page import AdsPage
+from .click_events_page import ClickEventsPage
+from .spinners_page import SpinnersPage

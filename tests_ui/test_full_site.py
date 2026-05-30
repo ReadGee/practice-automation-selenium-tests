@@ -3,7 +3,7 @@ import pytest
 from pyexpat.errors import messages
 from selenium.webdriver.support.select import Select
 from base.BaseTest import BaseTest
-from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage, WindowOperationsPage, AdsPage
+from pages import JsDelays, MainPage, FormFields, Popups, SliderPage, CalendarsPage, ModalPage, HoverPage, WindowOperationsPage, AdsPage, ClickEventsPage, SpinnersPage
 
 
 class TestTestingFullSite(BaseTest):
@@ -179,3 +179,24 @@ class TestTestingFullSite(BaseTest):
         ads_page.close_modal_button.click()
 
         assert result
+
+    @pytest.mark.parametrize("button_name, expected_text", [
+        ("cat_button", "Meow!"),
+        ("dog_button", "Woof!"),
+        ("pig_button", "Oink!"),
+        ("cow_button", "Moo!")
+    ])
+    def test_click_events(self, button_name, expected_text):
+        self.main_Page.click_events()
+        click_events_page = ClickEventsPage(self.driver)
+
+        button = getattr(click_events_page, button_name)
+        button.click()
+
+        assert click_events_page.get_result_text == expected_text
+
+    def test_spinners(self):
+        self.main_Page.click_spinners()
+        spinners_page = SpinnersPage(self.driver)
+
+        assert spinners_page.get_spinner.wait_until_invisibility(15)
